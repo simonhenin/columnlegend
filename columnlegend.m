@@ -146,11 +146,11 @@ switch lower(location),
     case {'northoutside'}
         % need to resize axes to allow legend to fit in figure window
         set(gca, 'position', [fig_pos]-[0 0 0 pos(4)]);
-        set(legend_h, 'position', [fig_pos(1)+fig_pos(3)/2-pos(3)/2 fig_pos(2)+fig_pos(4)-pos(4) pos(3) pos(4)]);
+        set(legend_h, 'position', [fig_pos(1)+fig_pos(3)/2-pos(3)/2 fig_pos(2)+(fig_pos(4)-pos(4)) pos(3) pos(4)]);
     case {'southoutside'}
         % need to resize axes to allow legend to fit in figure window
         set(gca, 'position', [fig_pos]-[0 -pos(4) 0 pos(4)]);
-        set(legend_h, 'position', [fig_pos(1)+fig_pos(3)/2-pos(3)/2 fig_pos(2)-pos(4)/2 pos(3) pos(4)]);
+        set(legend_h, 'position', [fig_pos(1)+fig_pos(3)/2-pos(3)/2 fig_pos(2)-pos(4)-pos(3)*0.1 pos(3) pos(4)]);
     case {'eastoutside'}
         % need to resize axes to allow legend to fit in figure window
         set(gca, 'position', [fig_pos]-[0 0 pos(3) 0]);
