@@ -28,7 +28,9 @@ function [legend_h,object_h,plot_h,text_strings] = columnlegend(numcolumns, str,
 %   
 %   4/09/2013 - Fixed bug with 3 entries / 3 columns
 %   4/09/2013 - Added bounding box option as per @Durga Lal Shrestha (fileexchage)
-
+%
+%   Motiified by Tian Zhou <github.com/yxtj>
+%   10/31/2016 - Add support for errorbar function (Now supports plot, plotyy, errorbar)
 
 
 location = 'NorthEast';
@@ -69,10 +71,25 @@ width = numcolumns*pos(3);
 newheight = (pos(4)/numlines)*numpercolumn;
 rescale = pos(3)/width;
 
+%set handles for x, y1 and y2 
+switch lower(get(plot_h(1),'type'))
+    case {'line'}
+        x_h=object_h(numlines+1);
+        y1_h=object_h(numlines+1);  % y line
+        y2_h=object_h(numlines+3);  % y marker
+    case {'errorbar'}
+        x_h=object_h(numlines+1).Children.Children(2);
+        y1_h=object_h(numlines+1).Children.Children(2);
+        y2_h=object_h(numlines+2).Children.Children(2);
+    otherwise
+        warning(['Type "' get(plot_h(1),'type') ' "not supported']);
+end
+
 %get some old values so we can scale everything later
-xdata = get(object_h(numlines+1), 'xdata'); 
-ydata1 = get(object_h(numlines+1), 'ydata');
-ydata2 = get(object_h(numlines+3), 'ydata');
+xdata = get(x_h, 'xdata'); 
+ydata1 = get(y1_h, 'ydata');
+ydata2 = get(y2_h, 'ydata');
+
 
 %we'll use these later to align things appropriately
 sheight = ydata1(1)-ydata2(1);                  % height between data lines
@@ -88,16 +105,25 @@ set(legend_h, 'position', [loci(1) pos(2) width pos(4)]);
 
 
 col = -1;
+linenum = numlines+1;
 for i=1:numlines,
     if (mod(i,numpercolumn)==1 || (numpercolumn == 1)),
         col = col+1;
     end
     
-    if i==1
-        linenum = i+numlines;
-    else
-        linenum = linenum+2;
+    switch lower(get(plot_h(i),'type'))
+        case {'line'}
+            line_yl_h=object_h(linenum);
+            line_ym_h=object_h(linenum+1);
+            linenum = linenum+2;
+        case {'errorbar'}
+            line_yl_h=object_h(linenum).Children.Children(2);
+            line_ym_h=object_h(linenum).Children.Children(1);
+            linenum = linenum+1;
+        otherwise
+            warning(['Type "' get(plot_h(i),'type') ' "not supported']);
     end
+    
     labelnum = i;
     
     position = mod(i,numpercolumn);
@@ -106,14 +132,13 @@ for i=1:numlines,
     end
     
     %realign the labels
-    set(object_h(linenum), 'ydata', [(height-(position-1)*sheight) (height-(position-1)*sheight)]);
-    set(object_h(linenum), 'xdata', [col/numcolumns+spacer col/numcolumns+spacer+line_width]);
-    
-    set(object_h(linenum+1), 'ydata', [height-(position-1)*sheight height-(position-1)*sheight]);
-    set(object_h(linenum+1), 'xdata', [col/numcolumns+spacer*3.5 col/numcolumns+spacer*3.5]);
-    
+    set(line_yl_h, 'ydata', [(height-(position-1)*sheight) (height-(position-1)*sheight)]);
+    set(line_yl_h, 'xdata', [col/numcolumns+spacer col/numcolumns+spacer+line_width]);
+
+    set(line_ym_h, 'ydata', [height-(position-1)*sheight height-(position-1)*sheight]);
+    set(line_ym_h, 'xdata', [col/numcolumns+spacer*3.5 col/numcolumns+spacer*3.5]);
+
     set(object_h(labelnum), 'position', [col/numcolumns+spacer*2+line_width height-(position-1)*sheight]);
-    
    
 end
 
