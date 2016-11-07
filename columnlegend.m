@@ -17,20 +17,18 @@ function [legend_h,object_h,plot_h,text_strings] = columnlegend(numcolumns, str,
 %        set legend bounding box on/off
 %
 %   example:
-%      legend_str = []; 
-%      for i=1:10, 
-%           x = 1:i:(10*i); 
-%           plot(x); hold on; 
-%           legend_str = [legend_str; {num2str(i)}];
-%      end
-%      columnlegend(3, legend_str, 'Location', 'NorthWest');
+%      plot(bsxfun(@times, [0:9]',[1:10])); 
+%      columnlegend(3, cellstr(num2str([1:10]')), 'location','northwest');
 %
 %
 %   Author: Simon Henin <shenin@gc.cuny.edu>
 %   
 %   4/09/2013 - Fixed bug with 3 entries / 3 columns
 %   4/09/2013 - Added bounding box option as per @Durga Lal Shrestha (fileexchage)
-
+%   11 May 2010 - 1.2 Add instructions for printing figure with columns
+%   08 Feb 2011 - 1.4 Added functionality when using markers.
+%   31 Oct 2015 - Updates for compatibility with 2015a, Adds minor improvements as per user suggestions
+%   07 Nov 2016 - Bug fixes, added functionality for bar plots, added all valid legend locations 
 
 
 location = 'NorthEast';
@@ -104,7 +102,6 @@ end
 loci = get(gca, 'position');
 set(legend_h, 'position', [loci(1) pos(2) width pos(4)]);
 
-height
 col = -1;
 for i=1:numlines,
     if (mod(i,numpercolumn)==1 || (numpercolumn == 1)),
