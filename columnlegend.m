@@ -8,7 +8,9 @@ function [legend_h,object_h,plot_h,text_strings] = columnlegend(numcolumns, str,
 %       
 %   columnlegend(..., 'Location', loc)
 %       loc - location variable for legend, default is 'NorthEast'
-%                  possible values: 'NorthWest', 'NorthEast', 'SouthEast', 'SouthWest' 
+%                  possible values: 'NorthWest', 'NorthEast', 'SouthEast', 'SouthWest', 
+%                                   'NorthOutside', 'SouthOutside',
+%                                   'NortheastOutside', 'SoutheastOutside'
 %
 %   columnlegend(..., 'boxon')
 %   columnlegend(..., 'boxoff')
@@ -69,16 +71,32 @@ width = numcolumns*pos(3);
 newheight = (pos(4)/numlines)*numpercolumn;
 rescale = pos(3)/width;
 
-%get some old values so we can scale everything later
-xdata = get(object_h(numlines+1), 'xdata'); 
-ydata1 = get(object_h(numlines+1), 'ydata');
-ydata2 = get(object_h(numlines+3), 'ydata');
 
-%we'll use these later to align things appropriately
-sheight = ydata1(1)-ydata2(1);                  % height between data lines
-height = ydata1(1);                             % height of the box. Used to top margin offset
-line_width = (xdata(2)-xdata(1))*rescale;   % rescaled linewidth to match original
-spacer = xdata(1)*rescale;                    % rescaled spacer used for margins
+%get some old values so we can scale everything later
+type = get(object_h(numlines+1), 'type');
+switch type,
+    case {'line'}
+        xdata = get(object_h(numlines+1), 'xdata');
+        ydata1 = get(object_h(numlines+1), 'ydata');
+        ydata2 = get(object_h(numlines+3), 'ydata');
+        
+        %we'll use these later to align things appropriately
+        sheight = ydata1(1)-ydata2(1);                  % height between data lines
+        height = ydata1(1);                             % height of the box. Used to top margin offset
+        line_width = (xdata(2)-xdata(1))*rescale;       % rescaled linewidth to match original
+        spacer = xdata(1)*rescale;                      % rescaled spacer used for margins
+    case {'hggroup'}
+        text_pos    = get(object_h(1), 'position');
+        child       = get(object_h(numlines+1), 'children');
+        vertices_1  = get(child, 'vertices');
+        child       = get(object_h(numlines+2), 'children');
+        vertices_2  = get(child, 'vertices');
+        sheight     = vertices_1(2,2)-vertices_1(1,2);
+        height      = vertices_1(2,2);
+        line_width  = (vertices_1(3,1)-vertices_1(1,1))*rescale;       % rescaled linewidth to match original
+        spacer      = vertices_1(1,2)-vertices_2(2,2);                      % rescaled spacer used for margins
+        text_space  = (text_pos(1)-vertices_1(4,1))./numcolumns;      
+end
 
 
 %put the legend on the upper left corner to make initial adjustments easier
@@ -86,7 +104,7 @@ spacer = xdata(1)*rescale;                    % rescaled spacer used for margins
 loci = get(gca, 'position');
 set(legend_h, 'position', [loci(1) pos(2) width pos(4)]);
 
-
+height
 col = -1;
 for i=1:numlines,
     if (mod(i,numpercolumn)==1 || (numpercolumn == 1)),
@@ -96,7 +114,11 @@ for i=1:numlines,
     if i==1
         linenum = i+numlines;
     else
-        linenum = linenum+2;
+        if strcmp(type, 'line'),
+            linenum = linenum+2;
+        else
+            linenum = linenum+1;
+        end
     end
     labelnum = i;
     
@@ -105,15 +127,28 @@ for i=1:numlines,
          position = numpercolumn;
     end
     
-    %realign the labels
-    set(object_h(linenum), 'ydata', [(height-(position-1)*sheight) (height-(position-1)*sheight)]);
-    set(object_h(linenum), 'xdata', [col/numcolumns+spacer col/numcolumns+spacer+line_width]);
-    
-    set(object_h(linenum+1), 'ydata', [height-(position-1)*sheight height-(position-1)*sheight]);
-    set(object_h(linenum+1), 'xdata', [col/numcolumns+spacer*3.5 col/numcolumns+spacer*3.5]);
-    
-    set(object_h(labelnum), 'position', [col/numcolumns+spacer*2+line_width height-(position-1)*sheight]);
-    
+    switch type,
+        case {'line'}
+            %realign the labels
+            set(object_h(linenum), 'ydata', [(height-(position-1)*sheight) (height-(position-1)*sheight)]);
+            set(object_h(linenum), 'xdata', [col/numcolumns+spacer col/numcolumns+spacer+line_width]);
+            
+            set(object_h(linenum+1), 'ydata', [height-(position-1)*sheight height-(position-1)*sheight]);
+            set(object_h(linenum+1), 'xdata', [col/numcolumns+spacer*3.5 col/numcolumns+spacer*3.5]);
+            
+            set(object_h(labelnum), 'position', [col/numcolumns+spacer*2+line_width height-(position-1)*sheight]);
+        case {'hggroup'},
+            child = get(object_h(linenum), 'children');
+            v = get(child, 'vertices');
+            %x-positions
+            v([1:2 5],1) = col/numcolumns+spacer;
+            v(3:4,1) = col/numcolumns+spacer+line_width;
+            % y-positions
+            v([1 4 5],2) = (height-(position-1)*sheight-(position-1)*spacer);
+            v([2 3], 2) = v(1,2)+sheight;
+            set(child, 'vertices', v);
+            set(object_h(labelnum), 'position', [v(3,1)+text_space v(1,2)+(v(2,2)-v(1,2))/2 v(3,1)-v(1,1)]);
+    end
    
 end
 
@@ -123,15 +158,22 @@ end
 set(legend_h, 'Color', 'None', 'Box', 'off');
 
 %let's put it where you want it
-pos = get(legend_h, 'position'); pos(4) = newheight;
 fig_pos = get(gca, 'position');
+pos = get(legend_h, 'position');
 padding = 0.01; % padding, in normalized units
+% if location is some variation on south, then we need to take into account
+% the new height
+if strfind(location, 'south'),
+    h_diff = pos(4)-newheight;
+    pos(4) = newheight;
+end
 switch lower(location),
     case {'northeast'}
         set(legend_h, 'position', [pos(1)+fig_pos(3)-pos(3)-padding pos(2) pos(3) pos(4)]);
     case {'northwest'}
         set(legend_h, 'position', [pos(1)+padding pos(2) pos(3) pos(4)]);        
     case {'southeast'}
+        pos(4) = newheight;
         set(legend_h, 'position', [pos(1)+fig_pos(3)-pos(3)-padding fig_pos(2)-pos(4)/2+pos(4)/4 pos(3) pos(4)]);
     case {'southwest'}
         set(legend_h, 'position', [fig_pos(1)+padding fig_pos(2)-pos(4)/2+pos(4)/4 pos(3) pos(4)]);
@@ -143,10 +185,16 @@ switch lower(location),
         % need to resize axes to allow legend to fit in figure window
         set(gca, 'position', [fig_pos]+[pos(3) 0 -pos(3) 0]);
         set(legend_h, 'position', [fig_pos(1)-fig_pos(3)*.1 pos(2) pos(3) pos(4)]); % -10% figurewidth to account for axis labels
+    case {'north'}
+        % need to resize axes to allow legend to fit in figure window
+        set(legend_h, 'position', [fig_pos(1)+fig_pos(3)/2-pos(3)/2 fig_pos(2)+(fig_pos(4)-pos(4))-padding pos(3) pos(4)]);    
     case {'northoutside'}
         % need to resize axes to allow legend to fit in figure window
         set(gca, 'position', [fig_pos]-[0 0 0 pos(4)]);
         set(legend_h, 'position', [fig_pos(1)+fig_pos(3)/2-pos(3)/2 fig_pos(2)+(fig_pos(4)-pos(4)) pos(3) pos(4)]);
+    case {'south'}
+        y_pos = fig_pos(2)-h_diff+pos(4);
+        set(legend_h, 'position', [fig_pos(1)+fig_pos(3)/2-pos(3)/2  y_pos pos(3) pos(4)]);
     case {'southoutside'}
         % need to resize axes to allow legend to fit in figure window
         set(gca, 'position', [fig_pos]-[0 -pos(4) 0 pos(4)]);
