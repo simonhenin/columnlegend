@@ -5,13 +5,16 @@ function [legend_h,object_h,plot_h,text_strings] = columnlegend(numcolumns, str,
 %   columnlegend(numcolumns, str, varargin)
 %       numcolumns - number of columns in the legend
 %       str - cell array of strings for the legend
-%       
+%
+%   Additional Input Options:
 %   columnlegend(..., 'Location', loc)
 %       loc - location variable for legend, default is 'NorthEast'
 %                  possible values: 'NorthWest', 'NorthEast', 'SouthEast', 'SouthWest', 
 %                                   'NorthOutside', 'SouthOutside',
 %                                   'NortheastOutside', 'SoutheastOutside'
 %
+%   columnlegend(numcolumns, str, 'padding', 0.5); % add 50% vertical padding between legend entries (relative to original height)
+%       
 %   columnlegend(..., 'boxon')
 %   columnlegend(..., 'boxoff')
 %        set legend bounding box on/off
