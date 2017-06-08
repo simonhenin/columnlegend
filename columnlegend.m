@@ -29,6 +29,8 @@ function [legend_h,object_h,plot_h,text_strings] = columnlegend(numcolumns, str,
 %   08 Feb 2011 - 1.4 Added functionality when using markers.
 %   31 Oct 2015 - Updates for compatibility with 2015a, Adds minor improvements as per user suggestions
 %   07 Nov 2016 - Bug fixes, added functionality for bar plots, added all valid legend locations 
+%   07 Jun 2017 - Added a quick padding feature that creates additional
+%   vertical space between legend entries.
 
 
 location = 'NorthEast';
@@ -48,6 +50,9 @@ for i=1:2:length(varargin),
         case 'object'
             object_h = varargin{i+1};
             i=i+2;
+        case 'padding'
+            padding = varargin{i+1};
+            i=i+2;    
     end
 end
 
@@ -79,8 +84,8 @@ switch type,
         ydata2 = get(object_h(numlines+3), 'ydata');
         
         %we'll use these later to align things appropriately
-        sheight = ydata1(1)-ydata2(1);                  % height between data lines
-        height = ydata1(1);                             % height of the box. Used to top margin offset
+        sheight     = ydata1(1)-ydata2(1) + (ydata1(1)-ydata2(1))*padding;          % height between data lines
+        height      = ydata1(1) + (ydata1(1)-ydata2(1))*padding*2;                    % height of the box. Used to top margin offset
         line_width = (xdata(2)-xdata(1))*rescale;       % rescaled linewidth to match original
         spacer = xdata(1)*rescale;                      % rescaled spacer used for margins
     case {'hggroup'}
