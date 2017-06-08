@@ -34,7 +34,7 @@ function [legend_h,object_h,plot_h,text_strings] = columnlegend(numcolumns, str,
 
 
 location = 'NorthEast';
-boxon = false; legend_h = false;
+boxon = false; legend_h = false; padding = 0;
 for i=1:2:length(varargin),
     switch lower(varargin{i})
         case 'location'
