@@ -37,7 +37,7 @@ function [legend_h,object_h,plot_h,text_strings] = columnlegend(numcolumns, str,
 
 
 location = 'NorthEast';
-boxon = false; legend_h = false; padding = 0;
+boxon = false; legend_h = false; padding = 0; extravars = [];
 for i=1:2:length(varargin),
     switch lower(varargin{i})
         case 'location'
@@ -55,13 +55,16 @@ for i=1:2:length(varargin),
             i=i+2;
         case 'padding'
             padding = varargin{i+1};
-            i=i+2;    
+            i=i+2;
+        otherwise
+            extravars{end+1} = varargin{i};
+            extravars{end+1} = varargin{i+1};
     end
 end
 
 if legend_h == false,
     %create the legend
-    [legend_h,object_h,plot_h,text_strings] = legend(str);
+    [legend_h,object_h,plot_h,text_strings] = legend(str, extravars{:});
 end
 
 %some variables
