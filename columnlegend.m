@@ -64,7 +64,11 @@ end
 
 if legend_h == false,
     %create the legend
-    [legend_h,object_h,plot_h,text_strings] = legend(str, extravars{:});
+    if ~isempty(extravars),
+        [legend_h,object_h,plot_h,text_strings] = legend(str, extravars{:});
+    else
+        [legend_h,object_h,plot_h,text_strings] = legend(str);
+    end
 end
 
 %some variables
