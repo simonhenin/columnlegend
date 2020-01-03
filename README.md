@@ -1,3 +1,7 @@
+# UPDATE:
+As of Matlab 2018a, legend() now supports columns, so function will no longer be maintaine:
+https://www.mathworks.com/help/matlab/ref/legend.html#d117e809522
+
 # columnlegend
 Creates a legend with a specified number of columns
 
@@ -41,8 +45,4 @@ columnlegend(3,{'yes', 'no', 'maybe'}, 'location', 'northwest');
 ```
 ![](./column_legend.png)
 
-
-UPDATE:
-As of Matlab 2018a, legend() now supports columns, so function will no longer be maintaine:
-https://www.mathworks.com/help/matlab/ref/legend.html#d117e809522
 
